@@ -8,8 +8,21 @@ let isListening = false;
 let salesChart = null;
 let currentTheme = 'auto';
 let charts = {};
+let notifications = [];
 
-// Sample data and translations
+// Enhanced number word mapping for voice recognition
+const numberWords = {
+    'zero': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+    'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
+    'eleven': 11, 'twelve': 12, 'thirteen': 13, 'fourteen': 14, 'fifteen': 15,
+    'sixteen': 16, 'seventeen': 17, 'eighteen': 18, 'nineteen': 19, 'twenty': 20,
+    // Hindi numbers
+    'एक': 1, 'दो': 2, 'तीन': 3, 'चार': 4, 'पांच': 5, 'छह': 6, 'सात': 7, 'आठ': 8, 'नौ': 9, 'दस': 10,
+    // Telugu numbers
+    'ఒకటి': 1, 'రెండు': 2, 'మూడు': 3, 'నాలుగు': 4, 'అయిదు': 5, 'ఆరు': 6, 'ఏడు': 7, 'ఎనిమిది': 8, 'తొమ్మిది': 9, 'పది': 10
+};
+
+// Sample data and translations (same as before)
 const sampleProducts = [
     {
         id: "1",
@@ -369,7 +382,7 @@ function deleteFromIndexedDB(storeName, id) {
     });
 }
 
-// Theme management
+// Enhanced Theme management
 function initTheme() {
     const savedTheme = localStorage.getItem('theme') || 'auto';
     currentTheme = savedTheme;
@@ -415,6 +428,72 @@ function toggleTheme() {
     }
 }
 
+// Enhanced Notification System
+function addNotification(type, title, message) {
+    const notification = {
+        id: Date.now().toString(),
+        type: type,
+        title: title,
+        message: message,
+        timestamp: new Date(),
+        read: false
+    };
+    
+    notifications.unshift(notification);
+    updateNotificationCount();
+    updateNotificationsList();
+    
+    // Auto-remove after 5 minutes
+    setTimeout(() => {
+        notifications = notifications.filter(n => n.id !== notification.id);
+        updateNotificationCount();
+        updateNotificationsList();
+    }, 300000);
+}
+
+function updateNotificationCount() {
+    const unreadCount = notifications.filter(n => !n.read).length;
+    const countElement = document.getElementById('notificationCount');
+    
+    if (unreadCount > 0) {
+        countElement.textContent = unreadCount;
+        countElement.classList.remove('hidden');
+    } else {
+        countElement.classList.add('hidden');
+    }
+}
+
+function updateNotificationsList() {
+    const notificationsList = document.getElementById('notificationsList');
+    
+    if (notifications.length === 0) {
+        notificationsList.innerHTML = '<div class="empty-state"><div class="empty-state-text">No notifications</div></div>';
+        return;
+    }
+    
+    notificationsList.innerHTML = notifications.map(notification => `
+        <div class="notification-item ${notification.type}" onclick="markNotificationAsRead('${notification.id}')">
+            <div class="notification-title">${notification.title}</div>
+            <div class="notification-message">${notification.message}</div>
+            <div class="notification-time">${notification.timestamp.toLocaleTimeString()}</div>
+        </div>
+    `).join('');
+}
+
+function markNotificationAsRead(notificationId) {
+    const notification = notifications.find(n => n.id === notificationId);
+    if (notification) {
+        notification.read = true;
+        updateNotificationCount();
+        updateNotificationsList();
+    }
+}
+
+function toggleNotificationPanel() {
+    const panel = document.getElementById('notificationPanel');
+    panel.classList.toggle('show');
+}
+
 // Login functionality
 function showLogin() {
     document.getElementById('loginPage').style.display = 'flex';
@@ -436,6 +515,9 @@ function handleLogin(storeName, ownerName) {
     document.getElementById('ownerNameInput').value = ownerName;
     
     hideLogin();
+    
+    // Welcome notification
+    addNotification('success', 'Welcome!', `Welcome back to ${storeName}`);
 }
 
 function handleLogout() {
@@ -498,7 +580,7 @@ function showSection(sectionId) {
     }
 }
 
-// Dashboard functions
+// Enhanced Dashboard functions
 async function loadDashboard() {
     const products = await getAllFromIndexedDB('products');
     const sales = await getAllFromIndexedDB('sales');
@@ -513,9 +595,9 @@ async function loadDashboard() {
     }, 0);
     const lowStockProducts = products.filter(product => product.currentStock <= product.minStock);
     
-    document.getElementById('todaySalesValue').textContent = `₹${todayRevenue}`;
-    document.getElementById('totalSalesValue').textContent = `₹${totalRevenue}`;
-    document.getElementById('totalProfitValue').textContent = `₹${totalProfit}`;
+    document.getElementById('todaySalesValue').textContent = `₹${todayRevenue.toLocaleString()}`;
+    document.getElementById('totalSalesValue').textContent = `₹${totalRevenue.toLocaleString()}`;
+    document.getElementById('totalProfitValue').textContent = `₹${totalProfit.toLocaleString()}`;
     document.getElementById('lowStockValue').textContent = lowStockProducts.length;
     document.getElementById('totalProductsValue').textContent = products.length;
     
@@ -524,6 +606,11 @@ async function loadDashboard() {
     
     // Show stock alerts
     showStockAlerts(lowStockProducts);
+    
+    // Check for low stock notifications
+    if (lowStockProducts.length > 0) {
+        addNotification('warning', 'Low Stock Alert', `${lowStockProducts.length} products are running low on stock`);
+    }
 }
 
 function showStockAlerts(lowStockProducts) {
@@ -535,7 +622,7 @@ function showStockAlerts(lowStockProducts) {
     }
     
     alertsContainer.innerHTML = lowStockProducts.map(product => `
-        <div class="stock-alert">
+        <div class="stock-alert animate-card">
             <div class="stock-alert-info">
                 <div class="stock-alert-icon">⚠️</div>
                 <div class="stock-alert-text">
@@ -547,7 +634,7 @@ function showStockAlerts(lowStockProducts) {
     `).join('');
 }
 
-// Products functions
+// Enhanced Products functions
 async function loadProducts() {
     const products = await getAllFromIndexedDB('products');
     const productsGrid = document.getElementById('productsGrid');
@@ -568,7 +655,7 @@ async function loadProducts() {
         const stockClass = stockPercentage < 33 ? 'critical' : stockPercentage < 66 ? 'low' : '';
         
         return `
-            <div class="product-card">
+            <div class="product-card animate-card">
                 <div class="product-header">
                     <h3 class="product-name">${product.name}</h3>
                     <span class="product-category">${product.category}</span>
@@ -596,10 +683,10 @@ async function loadProducts() {
                         <div class="stock-fill ${stockClass}" style="width: ${Math.min(stockPercentage, 100)}%"></div>
                     </div>
                     <div class="product-actions">
-                        <button class="btn btn--secondary btn--sm" onclick="editProduct('${product.id}')">
+                        <button class="btn btn--secondary btn--sm animate-hover-scale" onclick="editProduct('${product.id}')">
                             ${translate('edit')}
                         </button>
-                        <button class="btn btn--outline btn--sm" onclick="deleteProduct('${product.id}')">
+                        <button class="btn btn--outline btn--sm animate-hover-scale" onclick="deleteProduct('${product.id}')">
                             ${translate('delete')}
                         </button>
                     </div>
@@ -620,6 +707,8 @@ async function addProduct(productData) {
     showToast(translate('productAddedSuccess'));
     loadProducts();
     updateProductSelect();
+    
+    addNotification('success', 'Product Added', `${product.name} has been added to inventory`);
 }
 
 async function editProduct(productId) {
@@ -646,14 +735,19 @@ async function editProduct(productId) {
 
 async function deleteProduct(productId) {
     if (confirm('Are you sure you want to delete this product?')) {
+        const product = await getFromIndexedDB('products', productId);
         await deleteFromIndexedDB('products', productId);
         showToast('Product deleted successfully');
         loadProducts();
         updateProductSelect();
+        
+        if (product) {
+            addNotification('info', 'Product Deleted', `${product.name} has been removed from inventory`);
+        }
     }
 }
 
-// Sales functions
+// Enhanced Sales functions
 async function loadSales() {
     const sales = await getAllFromIndexedDB('sales');
     const recentSales = sales.slice(-10).reverse();
@@ -672,14 +766,14 @@ async function loadSales() {
     }
     
     salesContainer.innerHTML = recentSales.map(sale => `
-        <div class="sale-item">
+        <div class="sale-item animate-card">
             <div class="sale-info">
                 <div class="sale-product">${sale.productName}</div>
                 <div class="sale-details">
                     ${sale.quantity} ${sale.unit || 'units'} × ₹${sale.pricePerUnit} - ${sale.date} ${sale.time}
                 </div>
             </div>
-            <div class="sale-amount">₹${sale.totalAmount}</div>
+            <div class="sale-amount">₹${sale.totalAmount.toLocaleString()}</div>
         </div>
     `).join('');
 }
@@ -708,6 +802,8 @@ async function recordSale(saleData) {
     loadSales();
     loadDashboard();
     loadInventory();
+    
+    addNotification('success', 'Sale Recorded', `₹${sale.totalAmount} sale recorded for ${sale.productName}`);
 }
 
 // Enhanced Voice recognition functions
@@ -715,6 +811,7 @@ function initVoiceRecognition() {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
         console.log('Speech recognition not supported');
         showToast('Speech recognition not supported in this browser');
+        addNotification('error', 'Voice Recognition', 'Speech recognition not supported in this browser');
         return false;
     }
     
@@ -731,10 +828,12 @@ function initVoiceRecognition() {
         const voiceStatus = document.getElementById('voiceStatus');
         const voiceTranscript = document.getElementById('voiceTranscript');
         
-        voiceBtn.classList.add('listening');
-        voiceStatus.textContent = translate('listening');
-        voiceStatus.classList.add('listening');
-        voiceTranscript.textContent = 'Listening for your command...';
+        if (voiceBtn) voiceBtn.classList.add('listening');
+        if (voiceStatus) {
+            voiceStatus.textContent = translate('listening');
+            voiceStatus.classList.add('listening');
+        }
+        if (voiceTranscript) voiceTranscript.textContent = 'Listening for your command...';
         
         console.log('Voice recognition started');
     };
@@ -745,7 +844,8 @@ function initVoiceRecognition() {
             transcript += event.results[i][0].transcript;
         }
         
-        document.getElementById('voiceTranscript').textContent = transcript;
+        const voiceTranscript = document.getElementById('voiceTranscript');
+        if (voiceTranscript) voiceTranscript.textContent = transcript;
         
         if (event.results[event.results.length - 1].isFinal) {
             console.log('Final transcript:', transcript);
@@ -758,9 +858,11 @@ function initVoiceRecognition() {
         const voiceBtn = document.getElementById('voiceInputBtn');
         const voiceStatus = document.getElementById('voiceStatus');
         
-        voiceBtn.classList.remove('listening');
-        voiceStatus.textContent = '';
-        voiceStatus.classList.remove('listening');
+        if (voiceBtn) voiceBtn.classList.remove('listening');
+        if (voiceStatus) {
+            voiceStatus.textContent = '';
+            voiceStatus.classList.remove('listening');
+        }
         
         console.log('Voice recognition ended');
     };
@@ -773,12 +875,15 @@ function initVoiceRecognition() {
         const voiceStatus = document.getElementById('voiceStatus');
         const voiceTranscript = document.getElementById('voiceTranscript');
         
-        voiceBtn.classList.remove('listening');
-        voiceStatus.textContent = 'Error: ' + event.error;
-        voiceStatus.classList.remove('listening');
-        voiceTranscript.textContent = 'Error occurred. Please try again.';
+        if (voiceBtn) voiceBtn.classList.remove('listening');
+        if (voiceStatus) {
+            voiceStatus.textContent = 'Error: ' + event.error;
+            voiceStatus.classList.remove('listening');
+        }
+        if (voiceTranscript) voiceTranscript.textContent = 'Error occurred. Please try again.';
         
         showToast('Voice recognition error: ' + event.error);
+        addNotification('error', 'Voice Recognition Error', event.error);
     };
     
     return true;
@@ -799,35 +904,91 @@ function startVoiceRecognition() {
         } catch (error) {
             console.error('Error starting voice recognition:', error);
             showToast('Error starting voice recognition');
+            addNotification('error', 'Voice Recognition', 'Failed to start voice recognition');
         }
     }
 }
 
+// Enhanced voice search for products
+function startVoiceSearch() {
+    if (!recognition) {
+        if (!initVoiceRecognition()) {
+            return;
+        }
+    }
+    
+    if (isListening) {
+        recognition.stop();
+        return;
+    }
+    
+    // Modify recognition for search
+    recognition.onresult = function(event) {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            transcript += event.results[i][0].transcript;
+        }
+        
+        if (event.results[event.results.length - 1].isFinal) {
+            console.log('Search transcript:', transcript);
+            // Update search input with voice result
+            const searchInput = document.getElementById('productSearch');
+            if (searchInput) {
+                searchInput.value = transcript;
+                // Trigger search
+                searchInput.dispatchEvent(new Event('input'));
+            }
+        }
+    };
+    
+    try {
+        recognition.start();
+        showToast('Speak the product name to search...');
+    } catch (error) {
+        console.error('Error starting voice search:', error);
+        showToast('Error starting voice search');
+    }
+}
+
+// Enhanced voice command processing with word numbers
 async function processVoiceCommand(transcript) {
     const voiceStatus = document.getElementById('voiceStatus');
     const voiceTranscript = document.getElementById('voiceTranscript');
     
-    voiceStatus.textContent = translate('processing');
-    voiceTranscript.textContent = `Processing: "${transcript}"`;
+    if (voiceStatus) voiceStatus.textContent = translate('processing');
+    if (voiceTranscript) voiceTranscript.textContent = `Processing: "${transcript}"`;
     
     // Enhanced voice command processing with better pattern matching
     const command = transcript.toLowerCase().trim();
     console.log('Processing command:', command);
     
+    // Convert word numbers to digits
+    function convertWordNumbers(text) {
+        let result = text;
+        for (const [word, number] of Object.entries(numberWords)) {
+            const regex = new RegExp(`\\b${word}\\b`, 'gi');
+            result = result.replace(regex, number.toString());
+        }
+        return result;
+    }
+    
+    const processedCommand = convertWordNumbers(command);
+    console.log('Processed command:', processedCommand);
+    
     // Multiple patterns for sale commands
     const salePatterns = [
-        /(?:sold|sale|sell)\s+(\d+)\s+(.+)/i,
+        /(?:sold|sale|sell|record|add)\s+(\d+)\s+(.+)/i,
         /(\d+)\s+(.+)\s+(?:sold|sale|sell)/i,
         /(?:record|add)\s+(?:sale|sold)\s+(\d+)\s+(.+)/i,
-        /(?:बेचा|बिक्री)\s+(\d+)\s+(.+)/i, // Hindi
+        /(?:बेचा|बिक्री|रिकॉर्ड)\s+(\d+)\s+(.+)/i, // Hindi
         /(\d+)\s+(.+)\s+(?:बेचा|बिक्री)/i, // Hindi
-        /(?:అమ్మాను|అమ్మకం)\s+(\d+)\s+(.+)/i, // Telugu
+        /(?:అమ్మాను|అమ్మకం|రికార్డ్)\s+(\d+)\s+(.+)/i, // Telugu
         /(\d+)\s+(.+)\s+(?:అమ్మాను|అమ్మకం)/i // Telugu
     ];
     
     let saleMatch = null;
     for (const pattern of salePatterns) {
-        saleMatch = command.match(pattern);
+        saleMatch = processedCommand.match(pattern);
         if (saleMatch) break;
     }
     
@@ -841,14 +1002,15 @@ async function processVoiceCommand(transcript) {
         console.log('Parsed sale:', { quantity, productName });
         
         if (isNaN(quantity) || quantity <= 0) {
-            showToast('Invalid quantity specified');
-            voiceTranscript.textContent = 'Invalid quantity. Please try again.';
+            const message = 'Invalid quantity specified';
+            showToast(message);
+            if (voiceTranscript) voiceTranscript.textContent = '❌ ' + message;
             return;
         }
         
         const products = await getAllFromIndexedDB('products');
         
-        // Enhanced product matching
+        // Enhanced product matching with fuzzy search
         const product = products.find(p => {
             const pName = p.name.toLowerCase();
             const searchName = productName.toLowerCase();
@@ -864,7 +1026,9 @@ async function processVoiceCommand(transcript) {
             const sWords = searchName.split(' ');
             
             return pWords.some(pw => sWords.some(sw => 
-                pw.includes(sw) || sw.includes(pw)
+                pw.includes(sw) || sw.includes(pw) || 
+                (pw.length > 2 && sw.length > 2 && 
+                 (pw.substring(0, 3) === sw.substring(0, 3)))
             ));
         });
         
@@ -879,29 +1043,31 @@ async function processVoiceCommand(transcript) {
                 };
                 
                 await recordSale(saleData);
-                const message = `Sale recorded: ${quantity} ${product.name} for ₹${saleData.totalAmount}`;
+                const message = `Sale recorded: ${quantity} ${product.name} for ₹${saleData.totalAmount.toLocaleString()}`;
                 showToast(message);
-                voiceTranscript.textContent = `✅ ${message}`;
+                if (voiceTranscript) voiceTranscript.textContent = `✅ ${message}`;
             } else {
                 const message = `Insufficient stock for ${product.name}. Available: ${product.currentStock} ${product.unit}`;
                 showToast(message);
-                voiceTranscript.textContent = `❌ ${message}`;
+                if (voiceTranscript) voiceTranscript.textContent = `❌ ${message}`;
+                addNotification('warning', 'Insufficient Stock', message);
             }
         } else {
-            const message = `Product not found: "${productName}". Available products: ${products.map(p => p.name).join(', ')}`;
+            const availableProducts = products.slice(0, 5).map(p => p.name).join(', ');
+            const message = `Product not found: "${productName}". Try: ${availableProducts}`;
             showToast(message);
-            voiceTranscript.textContent = `❌ ${message}`;
+            if (voiceTranscript) voiceTranscript.textContent = `❌ ${message}`;
         }
     } else {
-        const message = `Command not recognized: "${transcript}". Try saying "sold 5 rice" or "sale 2 oil"`;
+        const message = `Command not recognized: "${transcript}". Try saying "sold five rice", "sale two oil", or "three dal sold"`;
         showToast(message);
-        voiceTranscript.textContent = `❌ ${message}`;
+        if (voiceTranscript) voiceTranscript.textContent = `❌ ${message}`;
     }
     
-    voiceStatus.textContent = '';
+    if (voiceStatus) voiceStatus.textContent = '';
 }
 
-// Inventory functions
+// Enhanced Inventory functions
 async function loadInventory() {
     const products = await getAllFromIndexedDB('products');
     const inventoryList = document.getElementById('inventoryList');
@@ -922,7 +1088,7 @@ async function loadInventory() {
         const needsReorder = product.currentStock <= reorderPoint;
         
         return `
-            <div class="inventory-item">
+            <div class="inventory-item animate-card">
                 <div class="inventory-info">
                     <div class="inventory-name">${product.name}</div>
                     <div class="inventory-meta">
@@ -947,10 +1113,56 @@ function calculateReorderPoint(product) {
     return (dailySales * leadTime) + safetyStock;
 }
 
+// Enhanced Reorder functionality
+async function generateReorderReport() {
+    const products = await getAllFromIndexedDB('products');
+    const reorderProducts = products.filter(product => {
+        const reorderPoint = calculateReorderPoint(product);
+        return product.currentStock <= reorderPoint;
+    });
+    
+    const reorderList = document.getElementById('reorderList');
+    
+    if (reorderProducts.length === 0) {
+        reorderList.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">✅</div>
+                <div class="empty-state-text">No products need reordering</div>
+                <div class="empty-state-subtext">All products are adequately stocked</div>
+            </div>
+        `;
+    } else {
+        reorderList.innerHTML = reorderProducts.map(product => {
+            const suggestedQuantity = Math.max(product.minStock * 2, 10);
+            return `
+                <div class="reorder-item animate-card">
+                    <div class="reorder-info">
+                        <div class="reorder-name">${product.name}</div>
+                        <div class="reorder-details">
+                            Current: ${product.currentStock} ${product.unit} | 
+                            Min: ${product.minStock} ${product.unit}
+                        </div>
+                    </div>
+                    <div class="reorder-suggestion">
+                        Suggest: ${suggestedQuantity} ${product.unit}
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        addNotification('info', 'Reorder Report', `${reorderProducts.length} products need reordering`);
+    }
+    
+    showModal('reorderModal');
+}
+
 // Enhanced Analytics functions
 async function loadAnalytics() {
     const sales = await getAllFromIndexedDB('sales');
     const products = await getAllFromIndexedDB('products');
+    
+    // Calculate analytics summary
+    updateAnalyticsSummary(sales, products);
     
     // Destroy existing charts
     Object.values(charts).forEach(chart => {
@@ -965,6 +1177,43 @@ async function loadAnalytics() {
     await createProfitChart(sales);
     await createCategoryChart(sales, products);
     await createStockChart(products);
+    await createHourlySalesChart(sales);
+    await createRevenueProfitChart(sales);
+}
+
+function updateAnalyticsSummary(sales, products) {
+    // Calculate sales growth (comparing last 7 days with previous 7 days)
+    const today = new Date();
+    const last7Days = sales.filter(sale => {
+        const saleDate = new Date(sale.date);
+        const diffTime = Math.abs(today - saleDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays <= 7;
+    });
+    
+    const previous7Days = sales.filter(sale => {
+        const saleDate = new Date(sale.date);
+        const diffTime = Math.abs(today - saleDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays > 7 && diffDays <= 14;
+    });
+    
+    const last7Revenue = last7Days.reduce((sum, sale) => sum + sale.totalAmount, 0);
+    const previous7Revenue = previous7Days.reduce((sum, sale) => sum + sale.totalAmount, 0);
+    const salesGrowth = previous7Revenue > 0 ? ((last7Revenue - previous7Revenue) / previous7Revenue) * 100 : 0;
+    
+    // Calculate profit margin
+    const totalRevenue = sales.reduce((sum, sale) => sum + sale.totalAmount, 0);
+    const totalCost = sales.reduce((sum, sale) => sum + ((sale.costPrice || 0) * sale.quantity), 0);
+    const profitMargin = totalRevenue > 0 ? ((totalRevenue - totalCost) / totalRevenue) * 100 : 0;
+    
+    // Calculate inventory turnover (simplified)
+    const avgInventoryValue = products.reduce((sum, product) => sum + (product.currentStock * product.costPrice), 0);
+    const inventoryTurnover = avgInventoryValue > 0 ? totalCost / avgInventoryValue : 0;
+    
+    document.getElementById('salesGrowth').textContent = `${salesGrowth >= 0 ? '+' : ''}${salesGrowth.toFixed(1)}%`;
+    document.getElementById('profitMargin').textContent = `${profitMargin.toFixed(1)}%`;
+    document.getElementById('inventoryTurnover').textContent = `${inventoryTurnover.toFixed(1)}x`;
 }
 
 async function createSalesTrendChart(sales) {
@@ -1021,7 +1270,7 @@ async function createSalesTrendChart(sales) {
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
-                            return '₹' + value;
+                            return '₹' + value.toLocaleString();
                         }
                     }
                 }
@@ -1112,7 +1361,8 @@ async function createMostSoldChart(sales) {
                 data: data,
                 backgroundColor: 'rgba(33, 128, 141, 0.8)',
                 borderColor: 'rgb(33, 128, 141)',
-                borderWidth: 1
+                borderWidth: 1,
+                borderRadius: 4
             }]
         },
         options: {
@@ -1164,7 +1414,8 @@ async function createProfitChart(sales) {
                 data: data,
                 backgroundColor: 'rgba(168, 75, 47, 0.8)',
                 borderColor: 'rgb(168, 75, 47)',
-                borderWidth: 1
+                borderWidth: 1,
+                borderRadius: 4
             }]
         },
         options: {
@@ -1180,7 +1431,7 @@ async function createProfitChart(sales) {
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
-                            return '₹' + value;
+                            return '₹' + value.toLocaleString();
                         }
                     }
                 }
@@ -1288,6 +1539,133 @@ async function createStockChart(products) {
     });
 }
 
+async function createHourlySalesChart(sales) {
+    const canvas = document.getElementById('hourlySalesChart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    
+    // Group sales by hour
+    const hourlySales = new Array(24).fill(0);
+    sales.forEach(sale => {
+        if (sale.time) {
+            const hour = parseInt(sale.time.split(':')[0]);
+            hourlySales[hour] += sale.totalAmount;
+        }
+    });
+    
+    const labels = [];
+    for (let i = 0; i < 24; i++) {
+        labels.push(`${i}:00`);
+    }
+    
+    charts.hourlySales = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Hourly Sales (₹)',
+                data: hourlySales,
+                borderColor: 'rgba(50, 184, 198, 1)',
+                backgroundColor: 'rgba(50, 184, 198, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+async function createRevenueProfitChart(sales) {
+    const canvas = document.getElementById('revenueProfitChart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    
+    // Calculate daily revenue and profit for last 7 days
+    const last7Days = [];
+    const revenueData = [];
+    const profitData = [];
+    
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateString = date.toISOString().split('T')[0];
+        last7Days.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+        
+        const daySales = sales.filter(sale => sale.date === dateString);
+        const dayRevenue = daySales.reduce((sum, sale) => sum + sale.totalAmount, 0);
+        const dayProfit = daySales.reduce((sum, sale) => {
+            const profit = (sale.pricePerUnit - (sale.costPrice || 0)) * sale.quantity;
+            return sum + profit;
+        }, 0);
+        
+        revenueData.push(dayRevenue);
+        profitData.push(dayProfit);
+    }
+    
+    charts.revenueProfit = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: last7Days,
+            datasets: [
+                {
+                    label: 'Revenue (₹)',
+                    data: revenueData,
+                    backgroundColor: 'rgba(33, 128, 141, 0.8)',
+                    borderColor: 'rgb(33, 128, 141)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Profit (₹)',
+                    data: profitData,
+                    backgroundColor: 'rgba(168, 75, 47, 0.8)',
+                    borderColor: 'rgb(168, 75, 47)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
 // Modal functions
 function showModal(modalId) {
     document.getElementById(modalId).classList.add('active');
@@ -1297,15 +1675,24 @@ function hideModal(modalId) {
     document.getElementById(modalId).classList.remove('active');
 }
 
-// Toast notification
-function showToast(message) {
+// Enhanced Toast notification
+function showToast(message, type = 'info') {
     const toast = document.getElementById('toast');
-    toast.querySelector('.toast-message').textContent = message;
+    const toastMessage = toast.querySelector('.toast-message');
+    
+    toastMessage.textContent = message;
+    
+    // Add type class for styling
+    toast.classList.remove('toast--success', 'toast--error', 'toast--warning');
+    if (type !== 'info') {
+        toast.classList.add(`toast--${type}`);
+    }
+    
     toast.classList.add('show');
     
     setTimeout(() => {
         toast.classList.remove('show');
-    }, 3000);
+    }, 4000);
 }
 
 // Utility functions
@@ -1351,6 +1738,13 @@ function populateCategories() {
     }
 }
 
+// Data Export functionality
+function exportReorderReport() {
+    // Simple CSV export for now
+    // In a real app, you might use a library like jsPDF
+    showToast('Export functionality will be available in the full version', 'info');
+}
+
 // Initialize sample data
 async function initializeSampleData() {
     const existingProducts = await getAllFromIndexedDB('products');
@@ -1369,11 +1763,60 @@ async function initializeSampleData() {
     }
 }
 
+// Enhanced Service Worker Registration for PWA
+function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        const swCode = `
+            const CACHE_NAME = 'kirana-store-v1';
+            const urlsToCache = [
+                '/',
+                'index.html',
+                'style.css',
+                'app.js',
+                'https://cdn.jsdelivr.net/npm/chart.js'
+            ];
+
+            self.addEventListener('install', event => {
+                event.waitUntil(
+                    caches.open(CACHE_NAME)
+                        .then(cache => cache.addAll(urlsToCache))
+                );
+            });
+
+            self.addEventListener('fetch', event => {
+                event.respondWith(
+                    caches.match(event.request)
+                        .then(response => {
+                            if (response) {
+                                return response;
+                            }
+                            return fetch(event.request);
+                        })
+                );
+            });
+        `;
+
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        const swURL = URL.createObjectURL(blob);
+
+        navigator.serviceWorker.register(swURL)
+            .then(registration => {
+                console.log('Service Worker registered:', registration);
+            })
+            .catch(error => {
+                console.log('Service Worker registration failed:', error);
+            });
+    }
+}
+
 // Event listeners
 document.addEventListener('DOMContentLoaded', async function() {
     try {
         await initDB();
         await initializeSampleData();
+        
+        // Register service worker for PWA functionality
+        registerServiceWorker();
         
         // Check if user is already logged in
         const savedUser = localStorage.getItem('currentUser');
@@ -1427,6 +1870,14 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         });
         
+        // Notification button
+        document.getElementById('notificationBtn').addEventListener('click', toggleNotificationPanel);
+        
+        // Close notifications
+        document.getElementById('closeNotifications').addEventListener('click', function() {
+            document.getElementById('notificationPanel').classList.remove('show');
+        });
+        
         // Navigation
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', function() {
@@ -1461,7 +1912,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (editId) {
                 productData.id = editId;
                 await saveToIndexedDB('products', productData);
-                showToast('Product updated successfully');
+                showToast('Product updated successfully', 'success');
+                addNotification('success', 'Product Updated', `${productData.name} has been updated`);
             } else {
                 await addProduct(productData);
             }
@@ -1491,18 +1943,18 @@ document.addEventListener('DOMContentLoaded', async function() {
             const quantity = parseInt(document.getElementById('saleQuantityInput').value);
             
             if (!productId || !quantity) {
-                showToast('Please select product and quantity');
+                showToast('Please select product and quantity', 'error');
                 return;
             }
             
             const product = await getFromIndexedDB('products', productId);
             if (!product) {
-                showToast('Product not found');
+                showToast('Product not found', 'error');
                 return;
             }
             
             if (product.currentStock < quantity) {
-                showToast('Insufficient stock');
+                showToast('Insufficient stock', 'warning');
                 return;
             }
             
@@ -1548,8 +2000,31 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // Voice search button
         document.getElementById('voiceSearchBtn').addEventListener('click', function() {
-            showToast('Voice search feature coming soon');
+            startVoiceSearch();
         });
+        
+        // Reorder button
+        document.getElementById('reorderBtn').addEventListener('click', generateReorderReport);
+        
+        // Low stock alert button
+        document.getElementById('lowStockBtn').addEventListener('click', async function() {
+            const products = await getAllFromIndexedDB('products');
+            const lowStockProducts = products.filter(product => product.currentStock <= product.minStock);
+            
+            if (lowStockProducts.length > 0) {
+                addNotification('warning', 'Low Stock Alert', `${lowStockProducts.length} products are running low on stock`);
+                showToast(`${lowStockProducts.length} products need attention`, 'warning');
+            } else {
+                addNotification('success', 'Stock Status', 'All products are adequately stocked');
+                showToast('All products are adequately stocked', 'success');
+            }
+        });
+        
+        // Export reorder report
+        document.getElementById('exportReorder').addEventListener('click', exportReorderReport);
+        
+        // Refresh analytics
+        document.getElementById('refreshAnalytics').addEventListener('click', loadAnalytics);
         
         // Modal close buttons
         document.querySelectorAll('.modal-close, [data-dismiss="modal"]').forEach(button => {
@@ -1566,15 +2041,18 @@ document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('toast').classList.remove('show');
         });
         
-        // Product search
+        // Enhanced Product search with filters
         document.getElementById('productSearch').addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
             const productCards = document.querySelectorAll('.product-card');
             
             productCards.forEach(card => {
                 const productName = card.querySelector('.product-name').textContent.toLowerCase();
-                if (productName.includes(searchTerm)) {
+                const productCategory = card.querySelector('.product-category').textContent.toLowerCase();
+                
+                if (productName.includes(searchTerm) || productCategory.includes(searchTerm)) {
                     card.style.display = 'block';
+                    card.style.animation = 'fadeIn 0.3s ease-in-out';
                 } else {
                     card.style.display = 'none';
                 }
@@ -1591,7 +2069,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                 currentUser.ownerName = ownerName;
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 document.getElementById('headerStoreName').textContent = storeName;
-                showToast('Store information updated successfully');
+                showToast('Store information updated successfully', 'success');
+                addNotification('success', 'Settings Updated', 'Store information has been updated');
             }
         });
         
@@ -1615,11 +2094,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Only show dashboard if user is logged in
         if (currentUser) {
             showSection('dashboard');
+            addNotification('info', 'System Ready', 'Kirana Store Manager is ready to use');
         }
         
     } catch (error) {
         console.error('Error initializing app:', error);
-        showToast('Error initializing app. Please refresh the page.');
+        showToast('Error initializing app. Please refresh the page.', 'error');
+        addNotification('error', 'Initialization Error', 'Failed to initialize the application');
     }
 });
 
@@ -1628,3 +2109,4 @@ window.editProduct = editProduct;
 window.deleteProduct = deleteProduct;
 window.showModal = showModal;
 window.hideModal = hideModal;
+window.markNotificationAsRead = markNotificationAsRead;
