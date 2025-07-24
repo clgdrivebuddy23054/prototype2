@@ -2,33 +2,51 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏪</text></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#21808D" />
     <title>Kirana Store Manager</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="data:application/json,{
+      'name': 'Kirana Store Manager',
+      'short_name': 'Kirana Store',
+      'description': 'Complete inventory and sales management solution',
+      'start_url': '/',
+      'display': 'standalone',
+      'background_color': '#FCFCF9',
+      'theme_color': '#21808D',
+      'icons': [
+        {
+          'src': 'data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><text y=\".9em\" font-size=\"90\">🏪</text></svg>',
+          'sizes': '192x192',
+          'type': 'image/svg+xml'
+        }
+      ]
+    }" />
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css" />
-    <!-- If you organize in folders, update the links like this: -->
-    <!-- <link rel="stylesheet" href="css/style.css"> -->
   </head>
   <body>
     <!-- Login Page -->
     <div id="loginPage" class="login-page">
-        <div class="login-container">
+        <div class="login-container animate-in">
             <div class="login-header">
-                <div class="login-icon">🏪</div>
-                <h1>Kirana Store Manager</h1>
-                <p>Complete inventory and sales management solution</p>
+                <div class="login-icon animate-bounce">🏪</div>
+                <h1 class="animate-fade-in">Kirana Store Manager</h1>
+                <p class="animate-fade-in-delay">Complete inventory and sales management solution</p>
             </div>
             <form id="loginForm" class="login-form">
-                <div class="form-group">
+                <div class="form-group animate-slide-up">
                     <label class="form-label">Store Name</label>
                     <input type="text" id="storeNameLogin" class="form-control" placeholder="Enter your store name" required>
                 </div>
-                <div class="form-group">
+                <div class="form-group animate-slide-up-delay">
                     <label class="form-label">Owner Name</label>
                     <input type="text" id="ownerNameLogin" class="form-control" placeholder="Enter owner name" required>
                 </div>
-                <button type="submit" class="btn btn--primary btn--full-width">
+                <button type="submit" class="btn btn--primary btn--full-width animate-slide-up-delay-2">
                     Start Managing Store
                 </button>
             </form>
@@ -57,7 +75,7 @@
                             <option value="te">తెలుగు</option>
                         </select>
                     </div>
-                    <button id="notificationBtn" class="btn btn--secondary btn--sm">
+                    <button id="notificationBtn" class="btn btn--secondary btn--sm notification-btn">
                         <span class="notification-icon">🔔</span>
                         <span id="notificationCount" class="notification-count hidden">0</span>
                     </button>
@@ -80,7 +98,7 @@
                 </div>
 
                 <div class="dashboard-cards">
-                    <div class="card dashboard-card">
+                    <div class="card dashboard-card animate-card">
                         <div class="card__body">
                             <div class="metric-item">
                                 <div class="metric-icon">💰</div>
@@ -92,7 +110,7 @@
                         </div>
                     </div>
 
-                    <div class="card dashboard-card">
+                    <div class="card dashboard-card animate-card">
                         <div class="card__body">
                             <div class="metric-item">
                                 <div class="metric-icon">📊</div>
@@ -104,7 +122,7 @@
                         </div>
                     </div>
 
-                    <div class="card dashboard-card">
+                    <div class="card dashboard-card animate-card">
                         <div class="card__body">
                             <div class="metric-item">
                                 <div class="metric-icon">💸</div>
@@ -116,7 +134,7 @@
                         </div>
                     </div>
 
-                    <div class="card dashboard-card">
+                    <div class="card dashboard-card animate-card">
                         <div class="card__body">
                             <div class="metric-item">
                                 <div class="metric-icon">⚠️</div>
@@ -128,7 +146,7 @@
                         </div>
                     </div>
 
-                    <div class="card dashboard-card">
+                    <div class="card dashboard-card animate-card">
                         <div class="card__body">
                             <div class="metric-item">
                                 <div class="metric-icon">📦</div>
@@ -141,7 +159,7 @@
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="card animate-fade-in">
                     <div class="card__body">
                         <h3 data-translate="stockAlert">Stock Alerts</h3>
                         <div id="stockAlerts" class="stock-alerts">
@@ -155,7 +173,7 @@
             <section id="products" class="section">
                 <div class="section-header">
                     <h2 data-translate="products">Products</h2>
-                    <button id="addProductBtn" class="btn btn--primary btn--sm">
+                    <button id="addProductBtn" class="btn btn--primary btn--sm animate-hover-scale">
                         <span>+</span>
                         <span data-translate="addProduct">Add Product</span>
                     </button>
@@ -163,7 +181,7 @@
 
                 <div class="search-container">
                     <input type="text" id="productSearch" class="form-control" placeholder="Search products..." data-translate-placeholder="search">
-                    <button id="voiceSearchBtn" class="btn btn--secondary btn--sm">
+                    <button id="voiceSearchBtn" class="btn btn--secondary btn--sm animate-hover-scale">
                         <span>🎤</span>
                     </button>
                 </div>
@@ -177,7 +195,7 @@
             <section id="sales" class="section">
                 <div class="section-header">
                     <h2 data-translate="sales">Sales</h2>
-                    <button id="quickSaleBtn" class="btn btn--primary btn--sm">
+                    <button id="quickSaleBtn" class="btn btn--primary btn--sm animate-hover-scale">
                         <span>🛒</span>
                         <span>Quick Sale</span>
                     </button>
@@ -185,16 +203,19 @@
 
                 <div class="sales-controls">
                     <div class="voice-input-container">
-                        <button id="voiceInputBtn" class="btn btn--secondary voice-btn">
+                        <button id="voiceInputBtn" class="btn btn--secondary voice-btn animate-hover-scale">
                             <span class="voice-icon">🎤</span>
                             <span data-translate="voiceInput">Voice Input</span>
                         </button>
                         <div id="voiceStatus" class="voice-status"></div>
                         <div id="voiceTranscript" class="voice-transcript"></div>
+                        <div class="voice-help">
+                            <small>Try: "sold five rice", "sale two oil", "three dal sold"</small>
+                        </div>
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="card animate-fade-in">
                     <div class="card__body">
                         <h3>Recent Sales</h3>
                         <div id="recentSales" class="sales-list">
@@ -208,10 +229,16 @@
             <section id="inventory" class="section">
                 <div class="section-header">
                     <h2 data-translate="inventory">Inventory</h2>
-                    <button id="reorderBtn" class="btn btn--primary btn--sm">
-                        <span>📋</span>
-                        <span>Reorder</span>
-                    </button>
+                    <div class="inventory-actions">
+                        <button id="reorderBtn" class="btn btn--primary btn--sm animate-hover-scale">
+                            <span>📋</span>
+                            <span>Generate Reorder</span>
+                        </button>
+                        <button id="lowStockBtn" class="btn btn--secondary btn--sm animate-hover-scale">
+                            <span>⚠️</span>
+                            <span>Low Stock Alert</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="inventory-filters">
@@ -234,18 +261,46 @@
             <section id="analytics" class="section">
                 <div class="section-header">
                     <h2 data-translate="analytics">Analytics</h2>
-                    <div class="period-selector">
+                    <div class="analytics-controls">
                         <select id="periodSelect" class="form-control enhanced-select">
                             <option value="daily">Daily</option>
                             <option value="weekly">Weekly</option>
                             <option value="monthly">Monthly</option>
                         </select>
+                        <button id="refreshAnalytics" class="btn btn--secondary btn--sm animate-hover-scale">
+                            <span>🔄</span>
+                            <span>Refresh</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="analytics-summary">
+                    <div class="summary-card animate-card">
+                        <div class="summary-icon">📈</div>
+                        <div class="summary-content">
+                            <h4>Sales Growth</h4>
+                            <div class="summary-value" id="salesGrowth">+0%</div>
+                        </div>
+                    </div>
+                    <div class="summary-card animate-card">
+                        <div class="summary-icon">💰</div>
+                        <div class="summary-content">
+                            <h4>Profit Margin</h4>
+                            <div class="summary-value" id="profitMargin">0%</div>
+                        </div>
+                    </div>
+                    <div class="summary-card animate-card">
+                        <div class="summary-icon">🔄</div>
+                        <div class="summary-content">
+                            <h4>Inventory Turnover</h4>
+                            <div class="summary-value" id="inventoryTurnover">0x</div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="analytics-grid">
                     <!-- Sales Trend Chart -->
-                    <div class="card analytics-card">
+                    <div class="card analytics-card animate-fade-in">
                         <div class="card__body">
                             <h3>Sales Trend (Last 7 Days)</h3>
                             <div class="chart-container">
@@ -255,7 +310,7 @@
                     </div>
 
                     <!-- Top Products by Revenue -->
-                    <div class="card analytics-card">
+                    <div class="card analytics-card animate-fade-in">
                         <div class="card__body">
                             <h3>Top Products by Revenue</h3>
                             <div class="chart-container">
@@ -265,7 +320,7 @@
                     </div>
 
                     <!-- Most Sold Items -->
-                    <div class="card analytics-card">
+                    <div class="card analytics-card animate-fade-in">
                         <div class="card__body">
                             <h3>Most Sold Items</h3>
                             <div class="chart-container">
@@ -275,7 +330,7 @@
                     </div>
 
                     <!-- Profit Analysis -->
-                    <div class="card analytics-card">
+                    <div class="card analytics-card animate-fade-in">
                         <div class="card__body">
                             <h3>Profit Analysis</h3>
                             <div class="chart-container">
@@ -285,7 +340,7 @@
                     </div>
 
                     <!-- Category Performance -->
-                    <div class="card analytics-card">
+                    <div class="card analytics-card animate-fade-in">
                         <div class="card__body">
                             <h3>Category Performance</h3>
                             <div class="chart-container">
@@ -295,11 +350,31 @@
                     </div>
 
                     <!-- Stock Status -->
-                    <div class="card analytics-card">
+                    <div class="card analytics-card animate-fade-in">
                         <div class="card__body">
                             <h3>Stock Status Overview</h3>
                             <div class="chart-container">
                                 <canvas id="stockChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hourly Sales Pattern -->
+                    <div class="card analytics-card animate-fade-in">
+                        <div class="card__body">
+                            <h3>Hourly Sales Pattern</h3>
+                            <div class="chart-container">
+                                <canvas id="hourlySalesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Revenue vs Profit -->
+                    <div class="card analytics-card animate-fade-in">
+                        <div class="card__body">
+                            <h3>Revenue vs Profit</h3>
+                            <div class="chart-container">
+                                <canvas id="revenueProfitChart"></canvas>
                             </div>
                         </div>
                     </div>
@@ -313,7 +388,7 @@
                 </div>
 
                 <div class="settings-list">
-                    <div class="card">
+                    <div class="card animate-fade-in">
                         <div class="card__body">
                             <h3>Store Information</h3>
                             <div class="form-group">
@@ -332,13 +407,13 @@
                                 <label class="form-label" data-translate="phoneNumber">Phone Number</label>
                                 <input type="tel" id="phoneInput" class="form-control">
                             </div>
-                            <button id="saveStoreInfo" class="btn btn--primary">
+                            <button id="saveStoreInfo" class="btn btn--primary animate-hover-scale">
                                 <span data-translate="save">Save</span>
                             </button>
                         </div>
                     </div>
 
-                    <div class="card">
+                    <div class="card animate-fade-in">
                         <div class="card__body">
                             <h3>Appearance</h3>
                             <div class="form-group">
@@ -352,14 +427,28 @@
                         </div>
                     </div>
 
-                    <div class="card">
+                    <div class="card animate-fade-in">
+                        <div class="card__body">
+                            <h3>Notifications</h3>
+                            <div class="form-group">
+                                <label class="form-label">Low Stock Alerts</label>
+                                <input type="checkbox" id="lowStockAlerts" checked>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Daily Sales Summary</label>
+                                <input type="checkbox" id="dailySummary" checked>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card animate-fade-in">
                         <div class="card__body">
                             <h3>Data Management</h3>
                             <div class="settings-actions">
-                                <button id="backupBtn" class="btn btn--secondary">
+                                <button id="backupBtn" class="btn btn--secondary animate-hover-scale">
                                     <span data-translate="backup">Backup</span>
                                 </button>
-                                <button id="restoreBtn" class="btn btn--secondary">
+                                <button id="restoreBtn" class="btn btn--secondary animate-hover-scale">
                                     <span data-translate="restore">Restore</span>
                                 </button>
                             </div>
@@ -371,37 +460,37 @@
 
         <!-- Bottom Navigation -->
         <nav class="bottom-nav">
-            <button class="nav-item active" data-section="dashboard">
+            <button class="nav-item active animate-nav" data-section="dashboard">
                 <span class="nav-icon">🏠</span>
                 <span class="nav-label" data-translate="dashboard">Dashboard</span>
             </button>
-            <button class="nav-item" data-section="products">
+            <button class="nav-item animate-nav" data-section="products">
                 <span class="nav-icon">📦</span>
                 <span class="nav-label" data-translate="products">Products</span>
             </button>
-            <button class="nav-item" data-section="sales">
+            <button class="nav-item animate-nav" data-section="sales">
                 <span class="nav-icon">💰</span>
                 <span class="nav-label" data-translate="sales">Sales</span>
             </button>
-            <button class="nav-item" data-section="inventory">
+            <button class="nav-item animate-nav" data-section="inventory">
                 <span class="nav-icon">📋</span>
                 <span class="nav-label" data-translate="inventory">Inventory</span>
             </button>
-            <button class="nav-item" data-section="analytics">
+            <button class="nav-item animate-nav" data-section="analytics">
                 <span class="nav-icon">📊</span>
                 <span class="nav-label" data-translate="analytics">Analytics</span>
             </button>
         </nav>
 
         <!-- Floating Action Button -->
-        <button id="fabBtn" class="fab">
+        <button id="fabBtn" class="fab animate-fab">
             <span>🛒</span>
         </button>
 
         <!-- Modals -->
         <!-- Add Product Modal -->
         <div id="addProductModal" class="modal">
-            <div class="modal-content">
+            <div class="modal-content animate-modal">
                 <div class="modal-header">
                     <h3 data-translate="addProduct">Add Product</h3>
                     <button class="modal-close">&times;</button>
@@ -458,7 +547,7 @@
 
         <!-- Quick Sale Modal -->
         <div id="quickSaleModal" class="modal">
-            <div class="modal-content">
+            <div class="modal-content animate-modal">
                 <div class="modal-header">
                     <h3>Quick Sale</h3>
                     <button class="modal-close">&times;</button>
@@ -492,8 +581,42 @@
             </div>
         </div>
 
+        <!-- Reorder Modal -->
+        <div id="reorderModal" class="modal">
+            <div class="modal-content animate-modal">
+                <div class="modal-header">
+                    <h3>Reorder Report</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="reorderList" class="reorder-list">
+                        <!-- Reorder items will be populated here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn--secondary" data-dismiss="modal">
+                        <span>Close</span>
+                    </button>
+                    <button id="exportReorder" class="btn btn--primary">
+                        <span>Export PDF</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Panel -->
+        <div id="notificationPanel" class="notification-panel">
+            <div class="notification-header">
+                <h3>Notifications</h3>
+                <button id="closeNotifications" class="btn btn--sm btn--secondary">&times;</button>
+            </div>
+            <div id="notificationsList" class="notifications-list">
+                <!-- Notifications will be populated here -->
+            </div>
+        </div>
+
         <!-- Notification Toast -->
-        <div id="toast" class="toast">
+        <div id="toast" class="toast animate-toast">
             <div class="toast-content">
                 <span class="toast-message"></span>
                 <button class="toast-close">&times;</button>
@@ -501,8 +624,6 @@
         </div>
     </div>
 
-    <!-- If you organize in folders, update the script src like this: -->
-    <!-- <script src="js/app.js"></script> -->
     <script src="app.js"></script>
   </body>
 </html>
